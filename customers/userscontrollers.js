@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { validationResult } = require('express-validator')
 var jwtDecode = require('jwt-decode');
 const Bcrypt = require('bcryptjs');
 let getRestaurantDetails = require('./restaurantdetails.model');
@@ -6,25 +7,33 @@ let UsersSchema = require('./users.model');
 
 var createUsers = function (req, response) {
     try {
-        if(req.body != undefined){
-        UsersSchema.countDocuments({ phonenumber: req.body.phonenumber }, (err, data) => {
-            if (err) {
-                return response.status(500).send(err);
-            }
-            else if (data > 0) {
-               return response.status(200).json({ message: "Already exists" });
+        const errors = validationResult(req)
+        console.log(errors)
+        if (!errors.isEmpty()) {
+            return response.send({ errors: errors.array() })
+        }
+        else{
+            if(req.body != undefined){
+                UsersSchema.countDocuments({ phonenumber: req.body.phonenumber }, (err, data) => {
+                    if (err) {
+                        return response.status(500).send(err);
+                    }
+                    else if (data > 0) {
+                       return response.status(200).json({ message: "Already exists" });
+                    }
+                    else {
+                        req.body.password = Bcrypt.hashSync(req.body.password, 10);
+                        var user = new UsersSchema(req.body);
+                        user.save();
+                        response.status(200).json({ message: "Successfully created" });
+                    }
+                })
             }
             else {
-                req.body.password = Bcrypt.hashSync(req.body.password, 10);
-                var user = new UsersSchema(req.body);
-                user.save();
-                response.status(200).json({ message: "Successfully created" });
+                response.status(500);
             }
-        })
-    }
-    else {
-        response.status(500);
-    }
+        }
+       
     } catch (error) {
         response.status(500).send(error);
     }

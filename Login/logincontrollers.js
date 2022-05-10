@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { validationResult } = require('express-validator')
 var jwtDecode = require('jwt-decode');
 const Bcrypt = require('bcryptjs');
 // let superAdmin = require('./superAdminModel');
@@ -6,47 +7,54 @@ const Bcrypt = require('bcryptjs');
 let LoginSchema = require('./login.model');
 
 var createAdmin = function (req, response, next) {
-    console.log("data");
     let token = req.headers.authorization;
     var decoded = jwtDecode(token);
     const verify = decoded.userId
     console.log(decoded.userId);
     try {
-        LoginSchema.countDocuments({ username: req.body.username }, (err, data) => {
-            if (err) {
-                return next(err);
-            }
-            if (data === 0) {
-                req.body.password = Bcrypt.hashSync(req.body.password, 10);
-                req.body.userId = verify;
-                var user = new LoginSchema(req.body);
-                user.save();
-                return response.status(200).json({ message: "Successfully created" });
-            }
-            else {
-                    let token = req.headers.authorization;
-                    var decoded = jwtDecode(token);
-                    LoginSchema.findById(req.body.id, (error, res) => {
-                        if(res){
-                        if (decoded.userId === res.userId) {
-                            LoginSchema.findByIdAndUpdate(req.body.id, { $set: req.body }, (err, data) => {
-                                response.status(200).json({ message: "Successfully updated" });
-                            })
+        const errors = validationResult(req)
+        console.log(errors)
+        if (!errors.isEmpty()) {
+            return response.send({ errors: errors.array() })
+        }
+        else{
+            LoginSchema.countDocuments({ username: req.body.username }, (err, data) => {
+                if (err) {
+                    return next(err);
+                }
+                if (data === 0) {
+                    req.body.password = Bcrypt.hashSync(req.body.password, 10);
+                    req.body.userId = verify;
+                    var user = new LoginSchema(req.body);
+                    user.save();
+                    return response.status(200).json({ message: "Successfully created" });
+                }
+                else {
+                        let token = req.headers.authorization;
+                        var decoded = jwtDecode(token);
+                        LoginSchema.findById(req.body.id, (error, res) => {
+                            if(res){
+                            if (decoded.userId === res.userId) {
+                                LoginSchema.findByIdAndUpdate(req.body.id, { $set: req.body }, (err, data) => {
+                                    response.status(200).json({ message: "Successfully updated" });
+                                })
+                            }
+                            else {
+                                return response.status(401).json({
+                                    message: "Authentication failed"
+                                });
+                            }
                         }
                         else {
-                            return response.status(401).json({
-                                message: "Authentication failed"
+                            return response.status(200).json({
+                                message: "Already exists"
                             });
                         }
-                    }
-                    else {
-                        return response.status(200).json({
-                            message: "Already exists"
-                        });
-                    }
-                    })
-            }
-        })
+                        })
+                }
+            })
+        }
+        
     } catch (error) {
         res.status(500).send(error);
     }
@@ -54,7 +62,6 @@ var createAdmin = function (req, response, next) {
 
 
 var addUsers = function (req, res) {
-    console.log("data");
     let getUser;
     LoginSchema.findOne({
         username: req.body.username

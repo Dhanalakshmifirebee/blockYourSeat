@@ -50,6 +50,10 @@ app.use('/review',reviewRoute)
 const ratingRoute = require('./restautantRating/ratingRoute') 
 app.use('/rating',ratingRoute)
 
+const FAQroute = require('./FAQ/FAQ.routes')
+app.use('/FAQ',FAQroute)
+
+
 app.route('/hashpassword/:id').get((req,res) => {
     let password = req.params.id;
     res.json({
