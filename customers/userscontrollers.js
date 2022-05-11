@@ -10,11 +10,11 @@ var createUsers = function (req, response) {
         const errors = validationResult(req)
         console.log(errors)
         if (!errors.isEmpty()) {
-            return response.send({ errors: errors.array() })
+            return response.status(400).send({ errors: errors.array() })
         }
         else{
             if(req.body != undefined){
-                UsersSchema.countDocuments({ phonenumber: req.body.phonenumber }, (err, data) => {
+                UsersSchema.countDocuments({contact: req.body.contact}, (err, data) => {
                     if (err) {
                         return response.status(500).send(err);
                     }
@@ -44,7 +44,7 @@ var addUsers = function (req, res,next) {
     console.log("data")
     let getUser;
     UsersSchema.findOne({
-        phonenumber: req.body.phonenumber
+        contact: req.body.contact
     }).then(user => {
         if (!user) {
             return res.status(401).json({

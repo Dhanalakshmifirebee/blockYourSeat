@@ -7,5 +7,6 @@ const express=require('express');
 //  bookingRouting.route('/login').post(logincontrollers.addUsers);
 //  bookingRouting.route('/get-admin/:id').get(logincontrollers.getId);
  bookingRouting.route('/booking').post(bookingcontrollers.createBookingSlot);
+ bookingRouting.route('/deleteBooking/:id').delete(bookingcontrollers.removeBooking)
 
 module.exports=bookingRouting;

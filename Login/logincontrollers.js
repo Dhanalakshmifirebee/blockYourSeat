@@ -15,7 +15,7 @@ var createAdmin = function (req, response, next) {
         const errors = validationResult(req)
         console.log(errors)
         if (!errors.isEmpty()) {
-            return response.send({ errors: errors.array() })
+            return response.status(302).send({ errors: errors.array() })
         }
         else{
             LoginSchema.countDocuments({ username: req.body.username }, (err, data) => {

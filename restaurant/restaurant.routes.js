@@ -1,8 +1,11 @@
 const express=require('express');
  const restaurantcontrollers=require('./restaurantcontrollers');
 
+ const multer = require('../multer')
+
  var restaurantRouting=express.Router();
 
+ restaurantRouting.route('/image').post(multer.upload.single("image"),restaurantcontrollers.addImage)
  restaurantRouting.route('/approvedRestaurant').post(restaurantcontrollers.approvedRestaurant)
  restaurantRouting.route('/getAllRestautant').get(restaurantcontrollers.getAllRestautant)
  restaurantRouting.route('/getrestaurant').get(restaurantcontrollers.getRestaurant);
@@ -16,5 +19,6 @@ const express=require('express');
  restaurantRouting.route('/restauranttime').post(restaurantcontrollers.restaurantTimeUpate);
 
 restaurantRouting.route('/searchAPI').get(restaurantcontrollers.searchAPI)
+restaurantRouting.route('/locationSearch/:key').get(restaurantcontrollers.locationSearch)
 
 module.exports=restaurantRouting;

@@ -5,12 +5,16 @@ let timeSchema = new Schema({
     time:String
 })
 
+
 let categorySchema = new Schema({
     categoryName:String
 })
 
+
 let adminRestaurantSchema = new Schema({
     restaurantName : String,
+    thumbnailImage: String,
+    imageList: Array,
     owner : String,
     email:String,
     address : String,
@@ -42,6 +46,11 @@ let adminRestaurantSchema = new Schema({
     opentime: Date,
     closetime: Date,
     serveravailable: Number,
+    website:String,
+    features:[],
+    diningOption:[],
+    seatingOption:[],
+    region:[],
     created:{type:Boolean,default:true},
     created_date:{
         type:Date, default:Date
@@ -50,6 +59,7 @@ let adminRestaurantSchema = new Schema({
         type:Number,
         default:0
     },
+    review:[Object],
     status:{
         type:String,
         default:"pending"

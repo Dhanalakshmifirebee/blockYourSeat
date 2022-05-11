@@ -29,6 +29,8 @@ app.use(bodyParser.urlencoded({
 app.use(cors());
 
 // Api root
+app.use('/upload',express.static('./upload'))
+
 const loginRoute = require('./Login/login.routes');
 app.use('/login', loginRoute);
 

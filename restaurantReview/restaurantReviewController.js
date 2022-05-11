@@ -1,4 +1,5 @@
 const restaurantReview = require('./restaurantReviewModel')
+let adminRestaurant = require('../restaurant/adminrestaurant.model')
 var jwtDecode = require('jwt-decode');
 
 const addReview = (req,res)=>{
@@ -7,9 +8,30 @@ const addReview = (req,res)=>{
         if(token!==null){
            var decoded = jwtDecode(token)
            req.body.userId = decoded.userId
-           var review = new restaurantReview(req.body);
-           review.save();
-           res.status(200).send({message:"review Added Successfully",review})
+           restaurantReview.create(req.body,(err,data)=>{
+               if(err){
+                   throw err
+               }
+               else{
+                   console.log(data);
+                   restaurantReview.findOne({_id:data._id},(err,data2)=>{
+                       if(data){
+                            adminRestaurant.findOneAndUpdate({_id:data2.restaurantId},{$set:{review:data2}},{new:true},(err,data)=>{ 
+                                if(err){
+                                    throw err  
+                                }
+                                else{
+                                    console.log(data)
+                                    res.status(200).send({message:data})
+                                }
+                            })
+                       }
+                       else{
+                           res.status(500).send({message:"data not found"})
+                       }
+                    })
+                }
+           })
         }
         else{
             res.status(401).send({message:"unauthorized"})

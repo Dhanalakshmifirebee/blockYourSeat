@@ -2,40 +2,68 @@ var jwtDecode = require('jwt-decode');
 let getRestaurantDetails = require('./restaurant.model');
 let LoginSchema = require('../Login/login.model');
 let adminRestaurant = require('./adminrestaurant.model');
+let imageSchema = require('./image.model')
 const nodeGeocoder = require('node-geocoder')
 const nodemailer = require('nodemailer');
 const { readdirSync } = require('fs');
 
 
-var addRestaurant =async function (req, res) {
-    let token = req.headers.authorization;
-    if (token != null) {
-        var decoded = jwtDecode(token);
-        req.body['adminId'] = decoded.userId;
-        let options = { provider: 'openstreetmap'}
-        let geoCoder = nodeGeocoder(options);
-        const convertAddressToLatLon=await(geoCoder.geocode(req.body.restaurantAddress))
-        req.body.restaurantLocation = {"restaurantLatitude":convertAddressToLatLon[0].latitude,"restaurantLongitude":convertAddressToLatLon[0].longitude}
-        const result1 = req.body.restaurantName.toLowerCase()
-        req.body.restaurantName = result1
-        const result2 = req.body.city.toLowerCase()
-        req.body.city = result2
-        console.log(req.body.restaurantName);
-        console.log(req.body.city);
-      
-        adminRestaurant.create(req.body, (error, data) => {
-            if (error) {
-                throw error
-            } else {
-                res.json(data)
+var addImage = (req,res)=>{
+    try{
+        console.log(req.file)
+        req.body.image = `http://192.168.1.37:8080/upload/${req.file.filename}`
+        imageSchema.create(req.body,(err,data)=>{
+            if(err){
+                throw err
             }
-        });
-    }
-    else {
-        res.status(401).json({
-            message: "Unauthorized"
+            else{
+                res.status(200).send({message:data})
+            }
         })
     }
+    catch(err){
+        res.status(500).send({message:err})
+    }
+}
+
+
+var addRestaurant =async function (req, res) {
+    let token = req.headers.authorization;
+    try{
+       console.log(token);
+        if (token != null) {
+            var decoded = jwtDecode(token);
+            req.body['adminId'] = decoded.userId;
+            let options = { provider: 'openstreetmap'}
+            let geoCoder = nodeGeocoder(options);
+            const convertAddressToLatLon=await(geoCoder.geocode(req.body.restaurantAddress))
+            req.body.restaurantLocation = {"restaurantLatitude":convertAddressToLatLon[0].latitude,"restaurantLongitude":convertAddressToLatLon[0].longitude}
+            const result1 = req.body.restaurantName.toLowerCase()
+            req.body.restaurantName = result1
+            const result2 = req.body.city.toLowerCase()
+            req.body.city = result2
+            console.log(req.body.restaurantName);
+            console.log(req.body.city);
+          
+            adminRestaurant.create(req.body, (error, data) => {
+
+                if (error) {
+                    throw error
+                } else {
+                    res.status(200).json(data)
+                }
+            });
+        }
+        else {
+            res.status(401).json({
+                message: "Unauthorized"
+            })
+        }
+    }
+    catch(err){
+        res.status(500).send({message:err})
+    }
+
 };
 
 
@@ -107,6 +135,7 @@ let transport = nodemailer.createTransport({
     }
 })
 
+
 let postMail = function ( to, subject, text) {
     transport.sendMail({
         from: 'dhanamcse282@gmail.com',
@@ -174,6 +203,7 @@ else {
 }
 }
 
+
 var updateAdminRestaurant = function (req, res) {
     let token = req.headers.authorization;
     if(token != null){
@@ -219,15 +249,19 @@ var getAdminRestaurant = function (req, res, next) {
     var restaurant;
     if (token != null) {
         var decoded = jwtDecode(token);
+        console.log(decoded);
         LoginSchema.find({role:"admin"}, (err, data) => {
+           
             if (err) throw ErrorEvent
             data = data.filter(res => JSON.stringify(res._id) === JSON.stringify(decoded.userId));
-            getRestaurantDetails.find((err, response) => {
+            console.log(data);
+            adminRestaurant.find((err, response) => {
+                console.log(response);
                 if (err) {
                     return next(err)
                 }
                 data.forEach(async ele => {
-                  restaurant = await response.filter(res => res.owner === ele.email);
+                  restaurant = await response.filter(res => res.adminId === decoded.userId);
                 if (response.length > 0) {
                     res.status(200).json(restaurant);
                 }
@@ -364,6 +398,23 @@ var searchAPI =async(req,res)=>{
    
 }
 
+var locationSearch = async (req,res)=>{
+    try{
+     var location =await adminRestaurant.find({
+        "$or":[
+          { "city":{$regex:req.params.key}}
+        ]
+       })
+     console.log(location)
+     res.status(200).send({message:location})
+    }
+    catch(err){
+        res.status(500).send({message:err})
+    }
+}
+
+
+
 
 
 module.exports = {
@@ -378,7 +429,9 @@ module.exports = {
     updateAdminRestaurant: updateAdminRestaurant,
     getAdminRestaurantById: getAdminRestaurantById,
     restaurantTimeUpate: restaurantTimeUpate,
-    searchAPI:searchAPI
+    searchAPI:searchAPI,
+    locationSearch:locationSearch,
+    addImage:addImage
 }
 
 

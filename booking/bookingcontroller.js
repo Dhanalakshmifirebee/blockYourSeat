@@ -10,7 +10,7 @@ var createBookingSlot = function (req, response) {
         req.body.userId = decoded.userId;
         var bookingTable = new booking(req.body);
         bookingTable.save();
-        response.status(200).json({ message: "Booking Successfully" });
+        response.status(200).json({ message: "Booking Successfully" ,bookingTable});
     }
     else {
         response.status(401).json({ message: "Unauthoraized" });
@@ -40,7 +40,28 @@ var getBookingSlot = function (req, response) {
     }
 }
 
+var removeBooking = (req,res)=>{
+    try{
+        booking.findOneAndDelete({_id:req.params.id},(err,data)=>{
+            if(err){
+                throw err
+            }
+            else{
+                console.log(data)
+                res.status(200).send({message:"deleted successfully",data})
+            }
+        })
+    }
+    catch(err){
+        res.status(500).send(err)
+    }
+}
+
+
+
+
 module.exports = {
     createBookingSlot: createBookingSlot,
-    getBookingSlot: getBookingSlot
+    getBookingSlot: getBookingSlot,
+    removeBooking:removeBooking
 }

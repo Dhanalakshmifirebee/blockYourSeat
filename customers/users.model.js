@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 let RegisterSchema = new Schema({
     username: String,
     email: String,
-    phonenumber: Number,
+    contact: Number,
     location: String,
     password: String
 }, {
