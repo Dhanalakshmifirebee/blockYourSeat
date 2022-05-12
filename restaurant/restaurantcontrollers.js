@@ -6,6 +6,16 @@ let imageSchema = require('./image.model')
 const nodeGeocoder = require('node-geocoder')
 const nodemailer = require('nodemailer');
 const { readdirSync } = require('fs');
+const { basename } = require('node:path/win32');
+
+
+const googleMapsClient = require('@google/maps').createClient({
+    key: 'AIzaSyDGuR-mfBs3y86eZ2-BXN4P1GS2QdnLh_4',
+    Promise: Promise
+  });
+
+
+
 
 
 var addImage = (req,res)=>{
@@ -177,7 +187,8 @@ var getRestaurantById = function (req, res) {
     let token = req.headers.authorization;
     if(token != null){
     var decoded = jwtDecode(token);
-    adminRestaurant.findById(req.params.id, (error, data) => {
+    adminRestaurant.findOne({_id:req.params.id}, (error, data) => {
+        console.log(data);
         if (error) throw err
         if(data.length <= 0){
             return res.status(200).json(
@@ -185,7 +196,7 @@ var getRestaurantById = function (req, res) {
             );
         }
         else {
-            if (decoded.userId === data.userId) {
+            if (decoded.userId === data.adminId) {
                 res.status(200).json(data);
             }
             else {
@@ -209,9 +220,9 @@ var updateAdminRestaurant = function (req, res) {
     if(token != null){
     var decoded = jwtDecode(token);
     console.log(decoded);
-    getRestaurantDetails.findById(req.body._id, (error, data) => {
-        console.log(data);
-        if (error) throw err
+    // getRestaurantDetails.findById(req.body._id, (error, data) => {
+    //     console.log(data);
+        // if (error) throw err
         LoginSchema.findById(decoded.userId, (err, data) => {
             console.log(data);
             if (err) {
@@ -234,7 +245,7 @@ var updateAdminRestaurant = function (req, res) {
                 })
             }
         });
-    });
+    // });
 }
 else {
     res.status(401).json({
@@ -413,9 +424,141 @@ var locationSearch = async (req,res)=>{
     }
 }
 
+// var googleMap = (req,res)=>{
+//     console.log("1")
+      
+//     googleMapsClient.geocode({address: 'Madurai'})
+//         .asPromise()
+//         .then((response) => {
+//           console.log(response.json.results);
+//         })
+//         .catch((err) => { 
+//           console.log(err);
+//         });
+//     // googleMapsClient.geocode({
+//     //     address: 'madurai'
+//     //   }, function(err, response) {
+         
+//     //       console.log(err);
+//     //     if (!err) {
+//     //       console.log(response.json.results);
+//     //     }
+//     //   });
+    
+// }
+
+var filterRestaurant = (req,res)=>{
+    try{
+        const a = req.body.diningOption
+        const b = req.body.seatingOption
+        const c = req.body.region
+        const d = req.body.cuisine
+        const e = req.body.time
+       
+        adminRestaurant.find({},(err,data)=>{
+          
+            const result = []
+           
+            var result0 = []
+            if(a!==null && a!==undefined){
+               for(var i=0;i<data.length;i++){
+                   for(var j=0;j<data[i].diningOption.length;j++){
+                       if(a == data[i].diningOption[j]){
+                           result0.push(data[i])
+                       }
+                   }
+               }
+               result.push(...result0)
+            }
+            
+            var result1 = []
+            if(b!==null && b!==undefined){
+                for(var i=0;i<b.length;i++){
+                    for(var j=0;j<data.length;j++){
+                        for(var k=0;k<data[j].seatingOption.length;k++){
+                            if(b[i]===data[j].seatingOption[k]){
+                               result1.push(data[j])
+                               console.log(data[j])
+                            }
+                        }
+                    }
+                }
+                result.push(...result1)
+            }
+
+            var result2 = []
+            if(c!==null && c!==undefined){
+                for(var i=0;i<c.length;i++){
+                    for(var j=0;j<data.length;j++){
+                        for(var k=0;k<data[j].region.length;k++){
+                            if(c[i]===data[j].region[k]){
+                               result2.push(data[j])
+                               console.log(data[j])
+                            }
+                        }
+                    }
+                }
+                result.push(...result2)
+            }
+
+            var result3 = []
+            if(d!==null && d!==undefined){
+                for(var i=0;i<d.length;i++){
+                    for(var j=0;j<data.length;j++){
+                        for(var k=0;k<data[j].category.length;k++){
+                            if(d[i]===data[j].category[k].categoryName){
+                               result3.push(data[j])
+                               console.log(data[j])
+                            }
+                        }
+                    }
+                }
+                result.push(...result3)
+            }
+
+            var result4 = []
+            if(e!==null && e!==undefined){
+                for(var i=0;i<e.length;i++){
+                    for(var j=0;j<data.length;j++){
+                        for(var k=0;k<data[j].bookingShedule.length;k++){
+                            if(e[i]===data[j].bookingShedule[k].time){
+                               result4.push(data[j])
+                               console.log(data[j])
+                            }
+                        }
+                    }
+                }
+                result.push(...result4)
+            }
+            const  uniqueElements = [...new Set(result)]
+            console.log("526",uniqueElements);
+            res.status(200).send(uniqueElements);
 
 
+        })
+       
+    }
+    catch(err){
+        res.status(500).send({message:err})
+    }
+}
 
+var filterRestaurantByOffer =(req,res)=>{
+    try{
+       adminRestaurant.find({offer:req.body.offer},(err,data)=>{
+           console.log(data);
+           if(err){
+               throw err
+           }
+           else{
+               res.status(400).send({message:data})
+           }
+       })
+    }
+    catch(err){
+        res.status(500).send({message:err})
+    }
+}
 
 module.exports = {
     approvedRestaurant:approvedRestaurant,
@@ -429,9 +572,13 @@ module.exports = {
     updateAdminRestaurant: updateAdminRestaurant,
     getAdminRestaurantById: getAdminRestaurantById,
     restaurantTimeUpate: restaurantTimeUpate,
+   
     searchAPI:searchAPI,
     locationSearch:locationSearch,
-    addImage:addImage
+    addImage:addImage,
+    filterRestaurant:filterRestaurant,
+    filterRestaurantByOffer,filterRestaurantByOffer,
+//     googleMap:googleMap
 }
 
 

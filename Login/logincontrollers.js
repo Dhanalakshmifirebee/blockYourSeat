@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require('express-validator')
 var jwtDecode = require('jwt-decode');
 const Bcrypt = require('bcryptjs');
-// let superAdmin = require('./superAdminModel');
+
 
 let LoginSchema = require('./login.model');
 
@@ -59,7 +59,6 @@ var createAdmin = function (req, response, next) {
         res.status(500).send(error);
     }
 }
-
 
 var addUsers = function (req, res) {
     let getUser;
@@ -143,23 +142,10 @@ var getId = function (req, res, next) {
 
 
 
-// const superAdminLogin = (req,res)=>{
-//     console.log("data");
-//     superAdmin.findOne({userName:req.body.userName},(err,data)=>{
-//         if(data){
-//             // const password = Bcrypt.compare(req.body.password,data.password)
-//             if(req.body.password == data.password){
-//                 const token = jwt.sign({userId:data._id},"secred",{expiresIn: "1h"})
-//                 res.status(200).send({message:"login successfully",token:token,role:"superAdmin"})
-//             }
-//         }
-//     })
-// }
-
 module.exports = {
     addUsers: addUsers,
     getUsers: getUsers,
     getId: getId,
-    createAdmin: createAdmin,
-    // superAdminLogin:superAdminLogin
+    createAdmin: createAdmin
+
 }

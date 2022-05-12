@@ -7,6 +7,7 @@ const express=require('express');
 
  restaurantRouting.route('/image').post(multer.upload.single("image"),restaurantcontrollers.addImage)
  restaurantRouting.route('/approvedRestaurant').post(restaurantcontrollers.approvedRestaurant)
+ 
  restaurantRouting.route('/getAllRestautant').get(restaurantcontrollers.getAllRestautant)
  restaurantRouting.route('/getrestaurant').get(restaurantcontrollers.getRestaurant);
  restaurantRouting.route('/updatestatus').post(restaurantcontrollers.statusUpdate);
@@ -20,5 +21,8 @@ const express=require('express');
 
 restaurantRouting.route('/searchAPI').get(restaurantcontrollers.searchAPI)
 restaurantRouting.route('/locationSearch/:key').get(restaurantcontrollers.locationSearch)
+restaurantRouting.route('/filterRestaurant').get(restaurantcontrollers.filterRestaurant)
+restaurantRouting.route('/filterRestaurantByOffer').get(restaurantcontrollers.filterRestaurantByOffer)
+// restaurantRouting.route('/googleMap').post(restaurantcontrollers.googleMap)
 
 module.exports=restaurantRouting;
